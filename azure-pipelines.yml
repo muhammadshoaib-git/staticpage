@@ -1,5 +1,5 @@
 trigger:
-- master
+- main
 
 pool:
   vmImage: ubuntu-latest
@@ -7,17 +7,32 @@ pool:
 variables:
 - group: 'New variable group 11-Sep'
 
-steps:
+stages:
 
-# Build / Validate Static Application
-- script: |
-    echo "Building Static Application..."
-    ls -la
-  displayName: 'Build Static Application'
+# ============================================================
+# STAGE 1: VALIDATE
+# ============================================================
+- stage: Validate
+  displayName: 'Validate Build'
 
-# Deploy to Azure Static Web Apps
-- task: AzureStaticWebApp@0
-  inputs:
-    app_location: '/'
-    output_location: ''
-    azure_static_web_apps_api_token: '$(AZURE_STATIC_WEB_APPS_API_TOKEN)'
+  jobs:
+  - job: ValidateWebsite
+    displayName: 'Validate Static Website'
+
+    steps:
+
+    - checkout: self
+
+    - script: |
+        echo "Checking website files..."
+        echo "Repository: $(Build.SourcesDirectory)"
+
+        if [ ! -f "$(Build.SourcesDirectory)/index.html" ]; then
+          echo "ERROR: index.html was not found."
+          exit 1
+        fi
+
+        echo "index.html found successfully."
+        echo "Website validation completed successfully."
+
+      displayName: 'Validate Website'
